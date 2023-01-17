@@ -16,8 +16,19 @@
 
 #### Команды в терминале
 
-- python -m venv venv
-- venv\Scripts\activate
-- pip install -r requirements.txt
-- docker-compose -f docker-compose.dev.yaml up
-- python main.py
+
+~~~ 
+python -m venv venv 
+~~~
+~~~
+venv\Scripts\activate
+~~~
+~~~
+pip install -r requirements.txt
+~~~
+~~~
+docker-compose -f docker-compose.dev.yaml up
+~~~
+~~~
+python main.py
+~~~
