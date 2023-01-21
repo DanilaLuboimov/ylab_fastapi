@@ -1,6 +1,5 @@
 from typing import Optional
 from uuid import uuid4
-
 from pydantic import BaseModel, UUID4, Field
 
 

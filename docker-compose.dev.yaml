@@ -1,12 +1,15 @@
-version: '3'
+version: '3.8'
 services:
   db:
-    image: postgres:11
+    container_name: dev_db
+    image: postgres:15.1-alpine
+    expose:
+      - 32700
     ports:
-      - 32700:5432
-    volumes:
-      - "/g/python_project/ylab_fastapi/postgresql/data"
+      - "32700:5432"
     environment:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root
       POSTGRES_DB: ylab_menu
+      PGDATA: "/g/python_project/ylab_fastapi/postgresql/data"
+      POSTGRES_INITDB_ARGS: "-A md5"

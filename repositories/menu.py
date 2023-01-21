@@ -60,7 +60,7 @@ class MenuRepository(BaseRepository):
         )
 
         m = await self.database.fetch_one(query=query)
-        print(m)
+
         if m is None:
             return None
         return Menu.parse_obj(m)
