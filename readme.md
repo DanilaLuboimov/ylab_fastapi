@@ -24,12 +24,12 @@
 - В файле docker-compose, в строке volumes - вписываем полный путь для хранения данных
 - Запустить docker desktop
 
-### Настроойка виртуального окружения
+### Настройка виртуального окружения
 
 ##### Команды в терминале
 
-~~~ 
-python -m venv venv 
+~~~
+python -m venv venv
 ~~~
 ~~~
 venv\Scripts\activate
@@ -50,7 +50,7 @@ python main.py
 
 ##### Описание env
 
-Для данного способа придусмотрен файл <b>.env</b>
+Для данного способа предусмотрен файл <b>.env</b>
 
 ```
 ● DB_USER="root"      # логин для базы данных postgresql
@@ -80,7 +80,7 @@ docker-compose -f docker-compose.ci.yaml up
 
 ##### Описание env
 
-Для данного способа придусмотрен файл <b>prod.env</b>
+Для данного способа предусмотрен файл <b>prod.env</b>
 
 ```
 ● DB_USER="root"      # логин для базы данных postgresql
@@ -96,7 +96,7 @@ docker-compose -f docker-compose.ci.yaml up
 docker-compose -f docker-compose.tests.yaml up  --abort-on-container-exit
 ~~~
 
-Для данного способа придусмотрен файл <b>tests.env</b>
+Для данного способа предусмотрен файл <b>tests.env</b>
 
 ```
 ● DB_USER="root"                                      # логин для базы данных postgresql
@@ -106,4 +106,3 @@ docker-compose -f docker-compose.tests.yaml up  --abort-on-container-exit
 ● SUBMENU_ID="cbcc0a55-8225-4053-9f71-acd65371ee9c"   # id для создания сущности submenu и dish в тестах
 ● DISH_ID="f7811d6d-bcc3-45f3-93ce-1343a7f6b34d"      # id для создания сущности dish в тестах
 ```
-

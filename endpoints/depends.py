@@ -1,7 +1,7 @@
+from db.base import database
+from repositories.dish import DishRepository
 from repositories.menu import MenuRepository
 from repositories.submenu import SubmenuRepository
-from repositories.dish import DishRepository
-from db.base import database
 
 
 def get_menus_repository() -> MenuRepository:
