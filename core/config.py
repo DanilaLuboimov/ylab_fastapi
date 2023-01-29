@@ -18,21 +18,20 @@ PROD = os.getenv('PROD')
 TESTING = os.getenv('TESTING')
 
 if TESTING:
-    # Используем отдельную базу данных для тестов
     DB_NAME = 'test_ylab_menu'
     DATABASE_URL = (
-        f'postgresql://{DB_USER}:{DB_PASSWORD}@{TESTING}/{DB_NAME}'
+        f'postgresql+asyncpg://{DB_USER}:{DB_PASSWORD}@{TESTING}/{DB_NAME}'
     )
     REDIS_URL = 'redis://redis'
 elif PROD:
     DB_NAME = 'ylab_menu'
     DATABASE_URL = (
-        f'postgresql://{DB_USER}:{DB_PASSWORD}@{PROD}/{DB_NAME}'
+        f'postgresql+asyncpg://{DB_USER}:{DB_PASSWORD}@{PROD}/{DB_NAME}'
     )
     REDIS_URL = 'redis://redis'
 else:
     DB_NAME = 'ylab_menu'
     DATABASE_URL = (
-        f'postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
+        f'postgresql+asyncpg://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
     )
     REDIS_URL = f'redis://{CACHE_HOST}:{CACHE_PORT}'

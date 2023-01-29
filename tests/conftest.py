@@ -1,17 +1,25 @@
 import asyncio
+import os
 from typing import Generator
 
 import pytest
 import pytest_asyncio
 from asgi_lifespan import LifespanManager
 from httpx import AsyncClient
-from sqlalchemy import create_engine, text
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
 
 from core.config import DATABASE_URL
-from db.base import database
+from db.tables import Base, Dish, Menu, Submenu
 from main import app
 
-engine = create_engine(DATABASE_URL)
+test_engine = create_async_engine(
+    DATABASE_URL,
+)
+
+session = sessionmaker(
+    test_engine, class_=AsyncSession, expire_on_commit=False,
+)
 
 
 @pytest.fixture(scope='session')
@@ -28,39 +36,42 @@ async def async_client() -> AsyncClient:
             yield client
 
 
-@pytest_asyncio.fixture
-async def create_menu():
-    query = text(
-        """
-        INSERT INTO menu (id, title, description)
-        VALUES ('62b74c7e-5913-4fe8-a524-9e0280828c97',
-        'TEST menu 1', 'TEST menu description 1')
-        """,
-    )
-    await database.execute(query)
+@pytest_asyncio.fixture(scope='session')
+async def async_session(a_session=session) -> AsyncSession:
 
+    async with a_session() as s:
+        async with test_engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
 
-@pytest_asyncio.fixture()
-async def create_submenu():
-    query = text(
-        """
-        INSERT INTO submenu (id, title, description, menu_id)
-        VALUES ('cbcc0a55-8225-4053-9f71-acd65371ee9c',
-        'TEST submenu 1', 'TEST submenu description 1',
-        '62b74c7e-5913-4fe8-a524-9e0280828c97')
-        """,
-    )
-    await database.execute(query)
+        async with s.begin():
+            test_menu = Menu(
+                # id='62b74c7e-5913-4fe8-a524-9e0280828c97',
+                id=os.getenv('MENU_ID'),
+                title='TEST menu 1',
+                description='TEST menu description 1',
+            )
+            test_submenu = Submenu(
+                id=os.getenv('SUBMENU_ID'),
+                title='TEST submenu 1',
+                description='TEST submenu description 1',
+                menu_id=os.getenv('MENU_ID'),
+            )
+            test_dish = Dish(
+                id=os.getenv('DISH_ID'),
+                title='TEST dish 1',
+                description='TEST dish description 1',
+                price='13.3535',
+                submenu_id=os.getenv('SUBMENU_ID'),
+            )
+            s.add(test_menu)
+            await s.flush()
+            s.add(test_submenu)
+            await s.flush()
+            s.add(test_dish)
+            await s.flush()
+        yield s
 
+    async with test_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
 
-@pytest_asyncio.fixture
-async def create_dish():
-    query = text(
-        """
-        INSERT INTO dish (id, title, description, price, submenu_id)
-        VALUES ('f7811d6d-bcc3-45f3-93ce-1343a7f6b34d',
-        'TEST dish 1', 'TEST dish description 1', '13.3535',
-        'cbcc0a55-8225-4053-9f71-acd65371ee9c')
-        """,
-    )
-    await database.execute(query)
+    await test_engine.dispose()
