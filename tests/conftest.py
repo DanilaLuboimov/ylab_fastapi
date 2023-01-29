@@ -45,7 +45,6 @@ async def async_session(a_session=session) -> AsyncSession:
 
         async with s.begin():
             test_menu = Menu(
-                # id='62b74c7e-5913-4fe8-a524-9e0280828c97',
                 id=os.getenv('MENU_ID'),
                 title='TEST menu 1',
                 description='TEST menu description 1',
