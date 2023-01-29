@@ -1,13 +1,13 @@
 import os
 
 import pytest
-from sqlalchemy import text
+from sqlalchemy import delete
 
-from db.base import database
+from db.tables import Submenu
 
 
 @pytest.mark.asyncio
-async def test_create_submenu(async_client, event_loop, create_submenu):
+async def test_create_submenu(async_client, async_session, event_loop):
     title = 'TEST submenu 1'
     description = 'TEST submenu description 1'
     data = {
@@ -22,10 +22,11 @@ async def test_create_submenu(async_client, event_loop, create_submenu):
     assert res_data.get('title') == title
     assert res_data.get('description') == description
     assert res_data.get('dishes_count') == 0
-    query = text(f"""
-            DELETE FROM submenu WHERE id = '{res_data.get('id')}'
-        """)
-    await database.execute(query)
+
+    stmt = delete(Submenu).where(Submenu.id == res_data.get('id'))
+
+    async with async_session.begin():
+        await async_session.execute(stmt)
 
 
 @pytest.mark.asyncio
@@ -36,7 +37,7 @@ async def test_get_one_submenu(async_client, event_loop):
     res_data = response.json()
     assert res_data.get('title') == 'TEST submenu 1'
     assert res_data.get('description') == 'TEST submenu description 1'
-    assert res_data.get('dishes_count') == 0
+    assert res_data.get('dishes_count') == 1
 
     url = url[:-1] + '0'
     response = await async_client.get(f'/api/v1/menus/{url}')

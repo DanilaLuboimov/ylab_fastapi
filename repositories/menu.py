@@ -1,92 +1,116 @@
-from copy import copy
-
 from fastapi import HTTPException
-from sqlalchemy import text
+from sqlalchemy import distinct, func, select, update
+from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
 from cache_redis.events import create_new_cache, delete_cache, get_cache_response
-from db.tables import menu
-from models.menu import Menu, MenuIn
-
-from .base import BaseRepository
+from db.tables import Dish, Menu, Submenu
+from models.menu import MainMenu, MenuIn, MenuUpdate
 
 
-class MenuRepository(BaseRepository):
-    async def get_all(self) -> list:
-        query = text(
-            """
-                SELECT m.*, COUNT(DISTINCT s.id)
-                AS submenus_count, COUNT(DISTINCT d.id) AS dishes_count
-                FROM menu AS m
-                LEFT JOIN submenu AS s ON s.menu_id = m.id
-                LEFT JOIN dish AS d ON d.submenu_id = s.id
-                GROUP BY m.id
-            """,
-        )
-        return await self.database.fetch_all(query)
+class MenuRepository:
+    @staticmethod
+    async def get_all(session: AsyncSession) -> list:
+        stmt = select(
+            Menu.id,
+            Menu.title,
+            Menu.description,
+            func.count(distinct(Submenu.id)).label('submenus_count'),
+            func.count(distinct(Dish.id)).label('dishes_count'),
+        ).outerjoin(
+            Submenu,
+            Submenu.menu_id == Menu.id,
+        ).outerjoin(
+            Dish.id,
+            Dish.submenu_id == Submenu.id,
+        ).group_by(Menu.id)
 
-    async def create(self, m: MenuIn) -> Menu:
-        new_record = Menu(
+        result = await session.execute(stmt)
+
+        answer = result.all()
+        return answer
+
+    @staticmethod
+    async def create(session: AsyncSession, m: MenuIn) -> MainMenu:
+        new_record = MainMenu(
             title=m.title,
             description=m.description,
         )
 
-        values = {**new_record.dict()}
-
-        await create_new_cache(copy(values))
-
-        values.pop('submenus_count')
-        values.pop('dishes_count')
-        query = menu.insert().values(**values)
-        await self.database.execute(query)
-        return values
-
-    async def patch(self, m_id: int, m: MenuIn) -> Menu | None:
-        await self.get_by_id(m_id)
-
-        answer = Menu(
-            id=m_id,
-            title=m.title,
-            description=m.description,
+        new_menu = Menu(
+            id=new_record.id,
+            title=new_record.title,
+            description=new_record.description,
         )
 
-        values = {**answer.dict()}
+        session.add(new_menu)
+        await session.flush()
 
-        await create_new_cache(values, m_id)
+        await create_new_cache(new_record.dict())
+        return new_record
 
-        values.pop('id')
-        values.pop('submenus_count')
-        values.pop('dishes_count')
+    async def patch(
+        self, session: AsyncSession, m_id: str,
+        m: MenuUpdate,
+    ) -> MainMenu | None:
+        await self.__get_by_id(session=session, m_id=m_id)
 
-        query = menu.update().where(menu.c.id == m_id).values(**values)
-        await self.database.execute(query)
-        return await self.get_by_id(m_id)
+        stmt = update(
+            Menu,
+        ).where(
+            Menu.id == m_id,
+        ).values(
+            **m.dict(),
+        )
 
-    async def delete(self, m_id: int) -> dict:
-        query = menu.delete().where(menu.c.id == m_id)
-        await self.database.execute(query=query)
+        await session.execute(stmt)
+
+        await delete_cache(m_id)
+
+        patch_record = await self.get_by_id(session=session, m_id=m_id)
+
+        cache_dict = MainMenu.parse_obj(patch_record).dict()
+        await create_new_cache(cache_dict, m_id)
+
+        return patch_record
+
+    async def delete(self, session: AsyncSession, m_id: str) -> dict:
+        record = await self.__get_by_id(session, m_id)
+
+        await session.delete(record)
+
         await delete_cache(m_id)
         return {'status': True, 'message': 'The menu has been deleted'}
 
-    async def get_by_id(self, m_id: int) -> Menu | None:
-        data = await get_cache_response(m_id)
+    @staticmethod
+    async def get_by_id(
+        session: AsyncSession,
+        m_id: str,
+    ) -> MainMenu | None:
+        cache = await get_cache_response(m_id)
 
-        if data:
-            return data
+        if cache:
+            return cache
 
-        query = text(
-            f"""
-                SELECT m.*, COUNT(DISTINCT s.id)
-                AS submenus_count, COUNT(DISTINCT d.id) AS dishes_count
-                FROM menu AS m
-                LEFT JOIN submenu AS s ON s.menu_id = m.id
-                LEFT JOIN dish AS d ON d.submenu_id = s.id
-                WHERE m.id = '{m_id}'
-                GROUP BY m.id
-            """,
-        )
+        stmt = select(
+            Menu.id,
+            Menu.title,
+            Menu.description,
+            func.count(distinct(Submenu.id)).label('submenus_count'),
+            func.count(distinct(Dish.id)).label('dishes_count'),
+        ).outerjoin(
+            Submenu,
+            Submenu.menu_id == Menu.id,
+        ).outerjoin(
+            Dish.id,
+            Dish.submenu_id == Submenu.id,
+        ).where(
+            Menu.id == m_id,
+        ).group_by(Menu.id)
 
-        record = await self.database.fetch_one(query=query)
+        result = await session.execute(stmt)
+
+        record = result.one_or_none()
 
         if record is None:
             raise HTTPException(
@@ -94,7 +118,24 @@ class MenuRepository(BaseRepository):
                 detail='menu not found',
             )
 
-        data = Menu.parse_obj(record)
-        await create_new_cache(data.dict(), m_id)
+        cache_dict = MainMenu.parse_obj(record).dict()
+        await create_new_cache(cache_dict, m_id)
+        return record
 
-        return data
+    @staticmethod
+    async def __get_by_id(session: AsyncSession, m_id: str) -> Menu:
+        stmt = select(
+            Menu,
+        ).where(
+            Menu.id == m_id,
+        )
+
+        result = await session.scalar(stmt)
+
+        if result is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail='menu not found',
+            )
+
+        return result

@@ -1,13 +1,13 @@
 import os
 
 import pytest
-from sqlalchemy import text
+from sqlalchemy import delete
 
-from db.base import database
+from db.tables import Dish
 
 
 @pytest.mark.asyncio
-async def test_create_dish(async_client, event_loop, create_dish):
+async def test_create_dish(async_client, event_loop, async_session):
     title = 'TEST dish 1'
     description = 'TEST dish description 1'
     data = {
@@ -22,10 +22,10 @@ async def test_create_dish(async_client, event_loop, create_dish):
     assert res_data.get('title') == title
     assert res_data.get('description') == description
     assert res_data.get('price') == '13.00'
-    query = text(f"""
-        DELETE FROM dish WHERE id = '{res_data.get('id')}'
-    """)
-    await database.execute(query)
+    stmt = delete(Dish).where(Dish.id == res_data.get('id'))
+
+    async with async_session.begin():
+        await async_session.execute(stmt)
 
 
 @pytest.mark.asyncio

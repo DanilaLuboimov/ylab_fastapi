@@ -1,7 +1,8 @@
 import uvicorn
 from fastapi import FastAPI
 
-from db.base import database
+from db.base import async_session, engine
+from db.tables import Base
 from endpoints import dish, menu, submenu
 
 app = FastAPI(title='Restaurant menu')
@@ -12,12 +13,9 @@ app.include_router(dish.router, prefix='/api/v1/menus', tags=['dishes'])
 
 @app.on_event('startup')
 async def startup():
-    await database.connect()
-
-
-@app.on_event('shutdown')
-async def shutdown():
-    await database.disconnect()
+    async with async_session():
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
 
 
 if __name__ == '__main__':
