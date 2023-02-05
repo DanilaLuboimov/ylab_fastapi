@@ -1,14 +1,15 @@
 import uuid
+from typing import Any
 
 from sqlalchemy import NUMERIC, Column, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import declarative_base
 
-Base = declarative_base()
+Base: Any = declarative_base()
 
 
 class Menu(Base):
-    __tablename__ = 'menu'
+    __tablename__ = "menu"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     title = Column(String)
@@ -16,23 +17,25 @@ class Menu(Base):
 
 
 class Submenu(Base):
-    __tablename__ = 'submenu'
+    __tablename__ = "submenu"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     title = Column(String)
     description = Column(String)
     menu_id = Column(
-        ForeignKey('menu.id', ondelete='CASCADE'),
-        nullable=False, )
+        ForeignKey("menu.id", ondelete="CASCADE"),
+        nullable=False,
+    )
 
 
 class Dish(Base):
-    __tablename__ = 'dish'
+    __tablename__ = "dish"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     title = Column(String)
     description = Column(String)
     price = Column(NUMERIC(precision=10, scale=2))
     submenu_id = Column(
-        ForeignKey('submenu.id', ondelete='CASCADE'),
-        nullable=False, )
+        ForeignKey("submenu.id", ondelete="CASCADE"),
+        nullable=False,
+    )

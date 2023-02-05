@@ -27,7 +27,9 @@ class DishRepository:
 
     @staticmethod
     async def create(
-        session: AsyncSession, m_id: str, sm_id: str,
+        session: AsyncSession,
+        m_id: str,
+        sm_id: str,
         d: DishIn,
     ) -> MainDish:
         new_record = MainDish(
@@ -54,17 +56,25 @@ class DishRepository:
         return new_record
 
     async def patch(
-        self, session: AsyncSession, m_id: str, sm_id: str,
-        d_id: str, d: DishUpdate,
-    ) -> MainDish | None:
+        self,
+        session: AsyncSession,
+        m_id: str,
+        sm_id: str,
+        d_id: str,
+        d: DishUpdate,
+    ) -> MainDish | dict:
         await self.__get_by_id(session=session, d_id=d_id)
 
-        stmt = update(
-            Dish,
-        ).where(
-            Dish.id == d_id,
-        ).values(
-            **d.dict(),
+        stmt = (
+            update(
+                Dish,
+            )
+            .where(
+                Dish.id == d_id,
+            )
+            .values(
+                **d.dict(),
+            )
         )
 
         await session.execute(stmt)
@@ -81,7 +91,10 @@ class DishRepository:
         return patch_record
 
     async def delete(
-        self, session: AsyncSession, m_id: str, sm_id: str,
+        self,
+        session: AsyncSession,
+        m_id: str,
+        sm_id: str,
         d_id: str,
     ) -> dict:
         record = await self.__get_by_id(session=session, d_id=d_id)
@@ -90,10 +103,10 @@ class DishRepository:
         await delete_cache(m_id)
         await delete_cache(sm_id)
         await delete_cache(d_id)
-        return {'status': True, 'message': 'The dish has been deleted'}
+        return {"status": True, "message": "The dish has been deleted"}
 
     @staticmethod
-    async def get_by_id(session: AsyncSession, d_id: str) -> MainDish | None:
+    async def get_by_id(session: AsyncSession, d_id: str) -> MainDish | dict:
         cache = await get_cache_response(d_id)
 
         if cache:
@@ -115,7 +128,7 @@ class DishRepository:
         if record is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail='dish not found',
+                detail="dish not found",
             )
 
         cache_dict = MainDish.parse_obj(record).dict()
@@ -138,7 +151,7 @@ class DishRepository:
         if result is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail='dish not found',
+                detail="dish not found",
             )
 
         return result

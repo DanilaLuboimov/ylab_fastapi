@@ -11,19 +11,24 @@ from models.menu import MainMenu, MenuIn, MenuUpdate
 class MenuRepository:
     @staticmethod
     async def get_all(session: AsyncSession) -> list:
-        stmt = select(
-            Menu.id,
-            Menu.title,
-            Menu.description,
-            func.count(distinct(Submenu.id)).label('submenus_count'),
-            func.count(distinct(Dish.id)).label('dishes_count'),
-        ).outerjoin(
-            Submenu,
-            Submenu.menu_id == Menu.id,
-        ).outerjoin(
-            Dish.id,
-            Dish.submenu_id == Submenu.id,
-        ).group_by(Menu.id)
+        stmt = (
+            select(
+                Menu.id,
+                Menu.title,
+                Menu.description,
+                func.count(distinct(Submenu.id)).label("submenus_count"),
+                func.count(distinct(Dish.id)).label("dishes_count"),
+            )
+            .outerjoin(
+                Submenu,
+                Submenu.menu_id == Menu.id,
+            )
+            .outerjoin(
+                Dish.id,
+                Dish.submenu_id == Submenu.id,
+            )
+            .group_by(Menu.id)
+        )
 
         result = await session.execute(stmt)
 
@@ -50,17 +55,23 @@ class MenuRepository:
         return new_record
 
     async def patch(
-        self, session: AsyncSession, m_id: str,
+        self,
+        session: AsyncSession,
+        m_id: str,
         m: MenuUpdate,
-    ) -> MainMenu | None:
+    ) -> MainMenu | dict:
         await self.__get_by_id(session=session, m_id=m_id)
 
-        stmt = update(
-            Menu,
-        ).where(
-            Menu.id == m_id,
-        ).values(
-            **m.dict(),
+        stmt = (
+            update(
+                Menu,
+            )
+            .where(
+                Menu.id == m_id,
+            )
+            .values(
+                **m.dict(),
+            )
         )
 
         await session.execute(stmt)
@@ -80,33 +91,39 @@ class MenuRepository:
         await session.delete(record)
 
         await delete_cache(m_id)
-        return {'status': True, 'message': 'The menu has been deleted'}
+        return {"status": True, "message": "The menu has been deleted"}
 
     @staticmethod
     async def get_by_id(
         session: AsyncSession,
         m_id: str,
-    ) -> MainMenu | None:
+    ) -> MainMenu | dict:
         cache = await get_cache_response(m_id)
 
         if cache:
             return cache
 
-        stmt = select(
-            Menu.id,
-            Menu.title,
-            Menu.description,
-            func.count(distinct(Submenu.id)).label('submenus_count'),
-            func.count(distinct(Dish.id)).label('dishes_count'),
-        ).outerjoin(
-            Submenu,
-            Submenu.menu_id == Menu.id,
-        ).outerjoin(
-            Dish.id,
-            Dish.submenu_id == Submenu.id,
-        ).where(
-            Menu.id == m_id,
-        ).group_by(Menu.id)
+        stmt = (
+            select(
+                Menu.id,
+                Menu.title,
+                Menu.description,
+                func.count(distinct(Submenu.id)).label("submenus_count"),
+                func.count(distinct(Dish.id)).label("dishes_count"),
+            )
+            .outerjoin(
+                Submenu,
+                Submenu.menu_id == Menu.id,
+            )
+            .outerjoin(
+                Dish.id,
+                Dish.submenu_id == Submenu.id,
+            )
+            .where(
+                Menu.id == m_id,
+            )
+            .group_by(Menu.id)
+        )
 
         result = await session.execute(stmt)
 
@@ -115,7 +132,7 @@ class MenuRepository:
         if record is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail='menu not found',
+                detail="menu not found",
             )
 
         cache_dict = MainMenu.parse_obj(record).dict()
@@ -135,7 +152,7 @@ class MenuRepository:
         if result is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail='menu not found',
+                detail="menu not found",
             )
 
         return result

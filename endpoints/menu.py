@@ -12,14 +12,14 @@ router = APIRouter()
 
 
 @router.get(
-    path='/',
+    path="/",
     response_model=list[MainMenu],
-    summary='Список меню',
+    summary="Список меню",
     status_code=http.HTTPStatus.OK,
 )
 async def read_menus(
-        menus: MenuRepository = Depends(get_menus_repository),
-        session: AsyncSession = Depends(get_session),
+    menus: MenuRepository = Depends(get_menus_repository),
+    session: AsyncSession = Depends(get_session),
 ) -> list[MainMenu]:
     """
     Возвращает список всех меню.
@@ -30,16 +30,16 @@ async def read_menus(
 
 
 @router.get(
-    path='/{m_id}',
+    path="/{m_id}",
     response_model=MainMenu,
-    summary='Конкретное меню',
+    summary="Конкретное меню",
     status_code=http.HTTPStatus.OK,
 )
 async def read_menu(
-        m_id: str,
-        menus: MenuRepository = Depends(get_menus_repository),
-        session: AsyncSession = Depends(get_session),
-) -> MainMenu:
+    m_id: str,
+    menus: MenuRepository = Depends(get_menus_repository),
+    session: AsyncSession = Depends(get_session),
+) -> MainMenu | dict:
     """
     Возвращает меню.
     :param m_id: id меню.
@@ -50,15 +50,15 @@ async def read_menu(
 
 
 @router.post(
-    path='/',
+    path="/",
     response_model=MainMenu,
-    summary='Создать меню',
+    summary="Создать меню",
     status_code=http.HTTPStatus.CREATED,
 )
 async def create_menu(
-        m: MenuIn,
-        menus: MenuRepository = Depends(get_menus_repository),
-        session: AsyncSession = Depends(get_session),
+    m: MenuIn,
+    menus: MenuRepository = Depends(get_menus_repository),
+    session: AsyncSession = Depends(get_session),
 ) -> MainMenu:
     """
     Создает новое меню.
@@ -70,17 +70,17 @@ async def create_menu(
 
 
 @router.patch(
-    path='/{m_id}',
+    path="/{m_id}",
     response_model=MainMenu,
-    summary='Обновить меню',
+    summary="Обновить меню",
     status_code=http.HTTPStatus.OK,
 )
 async def update_menu(
-        m_id: str,
-        m: MenuUpdate,
-        menus: MenuRepository = Depends(get_menus_repository),
-        session: AsyncSession = Depends(get_session),
-) -> MainMenu:
+    m_id: str,
+    m: MenuUpdate,
+    menus: MenuRepository = Depends(get_menus_repository),
+    session: AsyncSession = Depends(get_session),
+) -> MainMenu | dict:
     """
     Обновляет меню.
     :param m_id: id меню
@@ -92,14 +92,14 @@ async def update_menu(
 
 
 @router.delete(
-    path='/{m_id}',
-    summary='Удалить меню',
+    path="/{m_id}",
+    summary="Удалить меню",
     status_code=http.HTTPStatus.OK,
 )
 async def delete_menu(
-        m_id: str,
-        menus: MenuRepository = Depends(get_menus_repository),
-        session: AsyncSession = Depends(get_session),
+    m_id: str,
+    menus: MenuRepository = Depends(get_menus_repository),
+    session: AsyncSession = Depends(get_session),
 ) -> dict:
     """
     Удаляет меню.

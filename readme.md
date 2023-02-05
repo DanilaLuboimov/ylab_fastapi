@@ -15,6 +15,9 @@
     2. Развертывание на сервере
     3. Контейнерное тестирование
 6. Добавлено тестирование url доступа и логики репозиториев
+7. Добавлена ручка для создания тестовых данных
+8. Добавлен Celery для фонового формирования xlsx файла с общим меню
+9. Подключен RabbitMQ
 
 
 ## Запуск (для windows)
@@ -70,12 +73,15 @@ python main.py
 pytest -vv -W ignore::DeprecationWarning
 ~~~
 
-### Запуск проекта за одну команду: через docker-compose
+### Запуск проекта: через docker-compose
 
 ##### Команды в терминале
 
 ~~~
 docker-compose -f docker-compose.ci.yaml up
+~~~
+~~~
+celery -A tasks.worker:worker worker --loglevel=INFO -P threads
 ~~~
 
 ##### Описание env

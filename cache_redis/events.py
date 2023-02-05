@@ -5,8 +5,8 @@ from .redis_connection import redis
 
 async def create_new_cache(dictionary: dict, name: str | None = None) -> None:
     if not name:
-        name = str(dictionary['id'])
-    dictionary['id'] = str(dictionary['id'])
+        name = str(dictionary["id"])
+    dictionary["id"] = str(dictionary["id"])
     data = json.dumps(dictionary)
     await redis.set(name, data)
 

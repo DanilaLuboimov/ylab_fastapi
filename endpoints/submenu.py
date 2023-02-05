@@ -12,16 +12,16 @@ router = APIRouter()
 
 
 @router.post(
-    '/{m_id}/submenus/',
+    "/{m_id}/submenus/",
     response_model=MainSubmenu,
-    summary='Создать подменю',
+    summary="Создать подменю",
     status_code=http.HTTPStatus.CREATED,
 )
 async def create_submenu(
-        m_id: str,
-        sm: SubmenuIn,
-        submenus: SubmenuRepository = Depends(get_submenus_repository),
-        session: AsyncSession = Depends(get_session),
+    m_id: str,
+    sm: SubmenuIn,
+    submenus: SubmenuRepository = Depends(get_submenus_repository),
+    session: AsyncSession = Depends(get_session),
 ) -> MainSubmenu:
     """
     Создает подменю, связанное с меню.
@@ -34,15 +34,15 @@ async def create_submenu(
 
 
 @router.get(
-    path='/{m_id}/submenus/',
+    path="/{m_id}/submenus/",
     response_model=list[MainSubmenu],
-    summary='Список меню',
+    summary="Список меню",
     status_code=http.HTTPStatus.OK,
 )
 async def read_submenus(
-        m_id: str,
-        submenus: SubmenuRepository = Depends(get_submenus_repository),
-        session: AsyncSession = Depends(get_session),
+    m_id: str,
+    submenus: SubmenuRepository = Depends(get_submenus_repository),
+    session: AsyncSession = Depends(get_session),
 ) -> list[MainSubmenu]:
     """
     Возвращает список подменю, связанных с меню.
@@ -54,17 +54,17 @@ async def read_submenus(
 
 
 @router.get(
-    path='/{m_id}/submenus/{sm_id}',
+    path="/{m_id}/submenus/{sm_id}",
     response_model=MainSubmenu,
-    summary='Конкретное меню',
+    summary="Конкретное меню",
     status_code=http.HTTPStatus.OK,
 )
 async def read_submenu(
-        m_id: str,
-        sm_id: str,
-        submenu: SubmenuRepository = Depends(get_submenus_repository),
-        session: AsyncSession = Depends(get_session),
-) -> MainSubmenu:
+    m_id: str,
+    sm_id: str,
+    submenu: SubmenuRepository = Depends(get_submenus_repository),
+    session: AsyncSession = Depends(get_session),
+) -> MainSubmenu | dict:
     """
     Возвращает подменю.
     :param m_id: id меню, связанного с подменю.
@@ -76,18 +76,18 @@ async def read_submenu(
 
 
 @router.patch(
-    path='/{m_id}/submenus/{sm_id}',
+    path="/{m_id}/submenus/{sm_id}",
     response_model=MainSubmenu,
-    summary='Обновить подменю',
+    summary="Обновить подменю",
     status_code=http.HTTPStatus.OK,
 )
 async def update_submenu(
-        m_id: str,
-        sm_id: str,
-        sm: SubmenuUpdate,
-        submenus: SubmenuRepository = Depends(get_submenus_repository),
-        session: AsyncSession = Depends(get_session),
-) -> MainSubmenu:
+    m_id: str,
+    sm_id: str,
+    sm: SubmenuUpdate,
+    submenus: SubmenuRepository = Depends(get_submenus_repository),
+    session: AsyncSession = Depends(get_session),
+) -> MainSubmenu | dict:
     """
     Обновляет подменю
     :param m_id: id меню, связанного с подменю.
@@ -100,15 +100,15 @@ async def update_submenu(
 
 
 @router.delete(
-    path='/{m_id}/submenus/{sm_id}',
-    summary='Удалить подменю',
+    path="/{m_id}/submenus/{sm_id}",
+    summary="Удалить подменю",
     status_code=http.HTTPStatus.OK,
 )
 async def delete_menu(
-        m_id: str,
-        sm_id: str,
-        submenus: SubmenuRepository = Depends(get_submenus_repository),
-        session: AsyncSession = Depends(get_session),
+    m_id: str,
+    sm_id: str,
+    submenus: SubmenuRepository = Depends(get_submenus_repository),
+    session: AsyncSession = Depends(get_session),
 ) -> dict:
     """
     Удаляет подменю.

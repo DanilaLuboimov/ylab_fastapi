@@ -11,17 +11,22 @@ from models.submenu import MainSubmenu, SubmenuIn, SubmenuUpdate
 class SubmenuRepository:
     @staticmethod
     async def get_all(session: AsyncSession, m_id: str) -> list:
-        stmt = select(
-            Submenu.id,
-            Submenu.title,
-            Submenu.description,
-            func.count(distinct(Dish.id)).label('dishes_count'),
-        ).outerjoin(
-            Dish,
-            Dish.submenu_id == Submenu.id,
-        ).where(
-            Submenu.menu_id == m_id,
-        ).group_by(Submenu.id)
+        stmt = (
+            select(
+                Submenu.id,
+                Submenu.title,
+                Submenu.description,
+                func.count(distinct(Dish.id)).label("dishes_count"),
+            )
+            .outerjoin(
+                Dish,
+                Dish.submenu_id == Submenu.id,
+            )
+            .where(
+                Submenu.menu_id == m_id,
+            )
+            .group_by(Submenu.id)
+        )
 
         result = await session.execute(stmt)
 
@@ -30,27 +35,34 @@ class SubmenuRepository:
 
     @staticmethod
     async def get_by_id(
-        session: AsyncSession, m_id: str,
+        session: AsyncSession,
+        m_id: str,
         sm_id: str,
-    ) -> MainSubmenu | None:
+    ) -> MainSubmenu | dict:
         cache = await get_cache_response(sm_id)
 
         if cache:
             return cache
 
-        stmt = select(
-            Submenu.id,
-            Submenu.title,
-            Submenu.description,
-            func.count(distinct(Dish.id)).label('dishes_count'),
-        ).outerjoin(
-            Dish,
-            Dish.submenu_id == Submenu.id,
-        ).where(
-            Submenu.menu_id == m_id,
-        ).where(
-            Submenu.id == sm_id,
-        ).group_by(Submenu.id)
+        stmt = (
+            select(
+                Submenu.id,
+                Submenu.title,
+                Submenu.description,
+                func.count(distinct(Dish.id)).label("dishes_count"),
+            )
+            .outerjoin(
+                Dish,
+                Dish.submenu_id == Submenu.id,
+            )
+            .where(
+                Submenu.menu_id == m_id,
+            )
+            .where(
+                Submenu.id == sm_id,
+            )
+            .group_by(Submenu.id)
+        )
 
         result = await session.execute(stmt)
 
@@ -59,7 +71,7 @@ class SubmenuRepository:
         if record is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail='submenu not found',
+                detail="submenu not found",
             )
 
         cache_dict = MainSubmenu.parse_obj(record).dict()
@@ -68,7 +80,8 @@ class SubmenuRepository:
 
     @staticmethod
     async def create(
-        session: AsyncSession, m_id: str,
+        session: AsyncSession,
+        m_id: str,
         sm: SubmenuIn,
     ) -> MainSubmenu:
         new_record = MainSubmenu(
@@ -91,17 +104,25 @@ class SubmenuRepository:
         return new_record
 
     async def patch(
-        self, session: AsyncSession, m_id: str, sm_id: str,
+        self,
+        session: AsyncSession,
+        m_id: str,
+        sm_id: str,
         sm: SubmenuUpdate,
-    ) -> MainSubmenu | None:
-        stmt = update(
-            Submenu,
-        ).where(
-            Submenu.id == sm_id,
-        ).where(
-            Submenu.menu_id == m_id,
-        ).values(
-            **sm.dict(),
+    ) -> MainSubmenu | dict:
+        stmt = (
+            update(
+                Submenu,
+            )
+            .where(
+                Submenu.id == sm_id,
+            )
+            .where(
+                Submenu.menu_id == m_id,
+            )
+            .values(
+                **sm.dict(),
+            )
         )
 
         await session.execute(stmt)
@@ -121,11 +142,14 @@ class SubmenuRepository:
         return patch_record
 
     async def delete(
-        self, session: AsyncSession, m_id: str,
+        self,
+        session: AsyncSession,
+        m_id: str,
         sm_id: str,
     ) -> dict:
         record = await self.__get_by_id(
-            session=session, m_id=m_id,
+            session=session,
+            m_id=m_id,
             sm_id=sm_id,
         )
 
@@ -133,16 +157,20 @@ class SubmenuRepository:
 
         await delete_cache(m_id)
         await delete_cache(sm_id)
-        return {'status': True, 'message': 'The submenu has been deleted'}
+        return {"status": True, "message": "The submenu has been deleted"}
 
     @staticmethod
     async def __get_by_id(session: AsyncSession, m_id: str, sm_id: str):
-        stmt = select(
-            Submenu,
-        ).where(
-            Submenu.menu_id == m_id,
-        ).where(
-            Submenu.id == sm_id,
+        stmt = (
+            select(
+                Submenu,
+            )
+            .where(
+                Submenu.menu_id == m_id,
+            )
+            .where(
+                Submenu.id == sm_id,
+            )
         )
 
         result = await session.scalar(stmt)
@@ -150,7 +178,7 @@ class SubmenuRepository:
         if result is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail='submenu not found',
+                detail="submenu not found",
             )
 
         return result
