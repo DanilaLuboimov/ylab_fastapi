@@ -2,7 +2,7 @@
 
 ![](https://img.shields.io/badge/python-3.10-blue?style=flat-square) ![](https://img.shields.io/badge/fastapi-0.89.1-critical?style=flat-square) ![](https://img.shields.io/badge/SQLAlchemy-1.4.46-orange?style=flat-square)
 ![](https://img.shields.io/badge/alembic-1.9.1-yellowgreen?style=flat-square) ![](https://img.shields.io/badge/psycopg2--binary-2.9.5-9cf?style=flat-square)
-![](https://img.shields.io/badge/databases-0.7.0-red?style=flat-square)
+![](https://img.shields.io/badge/aoiredis-2.0.1-red?style=flat-square)
 
 ## Реализовано
 
@@ -15,10 +15,11 @@
     2. Развертывание на сервере
     3. Контейнерное тестирование
 6. Добавлено тестирование url доступа и логики репозиториев
-7. Добавлена ручка для создания тестовых данных
-8. Добавлен Celery для фонового формирования xlsx файла с общим меню
-9. Подключен RabbitMQ
-
+7. Кэширование c Redis
+8. Проверка pre-commit
+9. Добавлена ручка для создания тестовых данных
+10. Добавлен Celery для фонового формирования xlsx файла с общим меню
+11. Подключен RabbitMQ
 
 ## Запуск (для windows)
 
