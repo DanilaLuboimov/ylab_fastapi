@@ -1,9 +1,7 @@
-from fastapi import HTTPException
 from sqlalchemy import distinct, func, select, update
+from sqlalchemy.engine.row import Row
 from sqlalchemy.ext.asyncio import AsyncSession
-from starlette import status
 
-from cache_redis.events import create_new_cache, delete_cache, get_cache_response
 from db.tables import Dish, Submenu
 from models.submenu import MainSubmenu, SubmenuIn, SubmenuUpdate
 
@@ -38,12 +36,7 @@ class SubmenuRepository:
         session: AsyncSession,
         m_id: str,
         sm_id: str,
-    ) -> MainSubmenu | dict:
-        cache = await get_cache_response(sm_id)
-
-        if cache:
-            return cache
-
+    ) -> tuple[Row | None, dict | None]:
         stmt = (
             select(
                 Submenu.id,
@@ -68,15 +61,12 @@ class SubmenuRepository:
 
         record = result.one_or_none()
 
-        if record is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="submenu not found",
-            )
+        if not record:
+            return None, None
 
         cache_dict = MainSubmenu.parse_obj(record).dict()
-        await create_new_cache(cache_dict, sm_id)
-        return record
+
+        return record, cache_dict
 
     @staticmethod
     async def create(
@@ -98,18 +88,15 @@ class SubmenuRepository:
 
         session.add(new_submenu)
         await session.flush()
-
-        await create_new_cache(new_record.dict())
-        await delete_cache(m_id)
         return new_record
 
+    @staticmethod
     async def patch(
-        self,
         session: AsyncSession,
         m_id: str,
         sm_id: str,
         sm: SubmenuUpdate,
-    ) -> MainSubmenu | dict:
+    ) -> None:
         stmt = (
             update(
                 Submenu,
@@ -127,40 +114,15 @@ class SubmenuRepository:
 
         await session.execute(stmt)
 
-        await delete_cache(sm_id)
-
-        patch_record = await self.get_by_id(
-            session=session,
-            m_id=m_id,
-            sm_id=sm_id,
-        )
-
-        cache_dict = MainSubmenu.parse_obj(patch_record).dict()
-        await create_new_cache(cache_dict, sm_id)
-        await delete_cache(m_id)
-
-        return patch_record
-
+    @staticmethod
     async def delete(
-        self,
         session: AsyncSession,
-        m_id: str,
-        sm_id: str,
-    ) -> dict:
-        record = await self.__get_by_id(
-            session=session,
-            m_id=m_id,
-            sm_id=sm_id,
-        )
-
+        record,
+    ) -> None:
         await session.delete(record)
 
-        await delete_cache(m_id)
-        await delete_cache(sm_id)
-        return {"status": True, "message": "The submenu has been deleted"}
-
     @staticmethod
-    async def __get_by_id(session: AsyncSession, m_id: str, sm_id: str):
+    async def check_by_id(session: AsyncSession, m_id: str, sm_id: str):
         stmt = (
             select(
                 Submenu,
@@ -174,11 +136,4 @@ class SubmenuRepository:
         )
 
         result = await session.scalar(stmt)
-
-        if result is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="submenu not found",
-            )
-
         return result

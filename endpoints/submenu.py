@@ -1,12 +1,9 @@
 import http
 
 from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.submenu import MainSubmenu, SubmenuIn, SubmenuUpdate
-from repositories.submenu import SubmenuRepository
-
-from .depends import get_session, get_submenus_repository
+from services.submenu import SubmenuService
 
 router = APIRouter()
 
@@ -20,17 +17,15 @@ router = APIRouter()
 async def create_submenu(
     m_id: str,
     sm: SubmenuIn,
-    submenus: SubmenuRepository = Depends(get_submenus_repository),
-    session: AsyncSession = Depends(get_session),
+    submenus: SubmenuService = Depends(),
 ) -> MainSubmenu:
     """
     Создает подменю, связанное с меню.
     :param m_id: id меню, в котором создается подменю.
     :param sm: поля с информацией о подменю.
-    :param submenus: репозиторий для работы с логикой.
-    :param session: сессия с бд.
+    :param submenus: сервис для работы с логикой.
     """
-    return await submenus.create(session=session, m_id=m_id, sm=sm)
+    return await submenus.create(m_id=m_id, sm=sm)
 
 
 @router.get(
@@ -41,16 +36,14 @@ async def create_submenu(
 )
 async def read_submenus(
     m_id: str,
-    submenus: SubmenuRepository = Depends(get_submenus_repository),
-    session: AsyncSession = Depends(get_session),
+    submenus: SubmenuService = Depends(),
 ) -> list[MainSubmenu]:
     """
     Возвращает список подменю, связанных с меню.
     :param m_id: id меню, связанного с подменю.
-    :param submenus: репозиторий для работы с логикой.
-    :param session: сессия с бд.
+    :param submenus: сервис для работы с логикой.
     """
-    return await submenus.get_all(session=session, m_id=m_id)
+    return await submenus.get_all(m_id=m_id)
 
 
 @router.get(
@@ -62,17 +55,15 @@ async def read_submenus(
 async def read_submenu(
     m_id: str,
     sm_id: str,
-    submenu: SubmenuRepository = Depends(get_submenus_repository),
-    session: AsyncSession = Depends(get_session),
+    submenu: SubmenuService = Depends(),
 ) -> MainSubmenu | dict:
     """
     Возвращает подменю.
     :param m_id: id меню, связанного с подменю.
     :param sm_id: id подменю.
-    :param submenu: репозиторий для работы с логикой.
-    :param session: сессия с бд.
+    :param submenu: сервис для работы с логикой.
     """
-    return await submenu.get_by_id(session=session, m_id=m_id, sm_id=sm_id)
+    return await submenu.get_by_id(m_id=m_id, sm_id=sm_id)
 
 
 @router.patch(
@@ -85,18 +76,16 @@ async def update_submenu(
     m_id: str,
     sm_id: str,
     sm: SubmenuUpdate,
-    submenus: SubmenuRepository = Depends(get_submenus_repository),
-    session: AsyncSession = Depends(get_session),
+    submenus: SubmenuService = Depends(),
 ) -> MainSubmenu | dict:
     """
     Обновляет подменю
     :param m_id: id меню, связанного с подменю.
     :param sm_id: id подменю.
     :param sm: поля с информацией о меню для обновления.
-    :param submenus: репозиторий для работы с логикой.
-    :param session: сессия с бд.
+    :param submenus: сервис для работы с логикой.
     """
-    return await submenus.patch(session=session, m_id=m_id, sm_id=sm_id, sm=sm)
+    return await submenus.patch(m_id=m_id, sm_id=sm_id, sm=sm)
 
 
 @router.delete(
@@ -107,14 +96,12 @@ async def update_submenu(
 async def delete_menu(
     m_id: str,
     sm_id: str,
-    submenus: SubmenuRepository = Depends(get_submenus_repository),
-    session: AsyncSession = Depends(get_session),
+    submenus: SubmenuService = Depends(),
 ) -> dict:
     """
     Удаляет подменю.
     :param m_id: id меню, связанного с подменю.
     :param sm_id: id подменю.
-    :param submenus: репозиторий для работы с логикой.
-    :param session: сессия с бд.
+    :param submenus: сервис для работы с логикой.
     """
-    return await submenus.delete(session=session, m_id=m_id, sm_id=sm_id)
+    return await submenus.delete(m_id=m_id, sm_id=sm_id)

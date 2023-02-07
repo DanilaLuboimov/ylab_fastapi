@@ -1,9 +1,6 @@
-from fastapi import HTTPException
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from starlette import status
 
-from cache_redis.events import create_new_cache, delete_cache, get_cache_response
 from db.tables import Dish
 from models.dish import DishIn, DishUpdate, MainDish
 
@@ -28,7 +25,6 @@ class DishRepository:
     @staticmethod
     async def create(
         session: AsyncSession,
-        m_id: str,
         sm_id: str,
         d: DishIn,
     ) -> MainDish:
@@ -48,23 +44,14 @@ class DishRepository:
 
         session.add(new_dish)
         await session.flush()
-
-        await create_new_cache(new_record.dict())
-        await delete_cache(m_id)
-        await delete_cache(sm_id)
-
         return new_record
 
+    @staticmethod
     async def patch(
-        self,
         session: AsyncSession,
-        m_id: str,
-        sm_id: str,
         d_id: str,
         d: DishUpdate,
-    ) -> MainDish | dict:
-        await self.__get_by_id(session=session, d_id=d_id)
-
+    ) -> None:
         stmt = (
             update(
                 Dish,
@@ -79,39 +66,18 @@ class DishRepository:
 
         await session.execute(stmt)
 
-        await delete_cache(d_id)
-
-        patch_record = await self.get_by_id(session=session, d_id=d_id)
-
-        cache_dict = MainDish.parse_obj(patch_record).dict()
-        await create_new_cache(cache_dict, d_id)
-        await delete_cache(m_id)
-        await delete_cache(sm_id)
-
-        return patch_record
-
+    @staticmethod
     async def delete(
-        self,
         session: AsyncSession,
-        m_id: str,
-        sm_id: str,
-        d_id: str,
+        record,
     ) -> dict:
-        record = await self.__get_by_id(session=session, d_id=d_id)
-
         await session.delete(record)
-        await delete_cache(m_id)
-        await delete_cache(sm_id)
-        await delete_cache(d_id)
         return {"status": True, "message": "The dish has been deleted"}
 
     @staticmethod
-    async def get_by_id(session: AsyncSession, d_id: str) -> MainDish | dict:
-        cache = await get_cache_response(d_id)
-
-        if cache:
-            return cache
-
+    async def get_by_id(
+        session: AsyncSession, d_id: str
+    ) -> tuple[MainDish | None, dict | None]:
         stmt = select(
             Dish.id,
             Dish.title,
@@ -126,17 +92,13 @@ class DishRepository:
         record = result.one_or_none()
 
         if record is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="dish not found",
-            )
+            return None, None
 
         cache_dict = MainDish.parse_obj(record).dict()
-        await create_new_cache(cache_dict, d_id)
-        return record
+        return record, cache_dict
 
     @staticmethod
-    async def __get_by_id(
+    async def check_by_id(
         session: AsyncSession,
         d_id: str,
     ) -> Dish:
@@ -147,11 +109,4 @@ class DishRepository:
         )
 
         result = await session.scalar(stmt)
-
-        if result is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="dish not found",
-            )
-
         return result

@@ -1,12 +1,9 @@
 import http
 
 from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.menu import MainMenu, MenuIn, MenuUpdate
-from repositories.menu import MenuRepository
-
-from .depends import get_menus_repository, get_session
+from services.menu import MenuService
 
 router = APIRouter()
 
@@ -18,15 +15,13 @@ router = APIRouter()
     status_code=http.HTTPStatus.OK,
 )
 async def read_menus(
-    menus: MenuRepository = Depends(get_menus_repository),
-    session: AsyncSession = Depends(get_session),
+    menus: MenuService = Depends(),
 ) -> list[MainMenu]:
     """
     Возвращает список всех меню.
-    :param menus: репозиторий для работы с логикой.
-    :param session: сессия с бд.
+    :param menus: сервис для работы с логикой.
     """
-    return await menus.get_all(session=session)
+    return await menus.get_all()
 
 
 @router.get(
@@ -37,16 +32,14 @@ async def read_menus(
 )
 async def read_menu(
     m_id: str,
-    menus: MenuRepository = Depends(get_menus_repository),
-    session: AsyncSession = Depends(get_session),
+    menus: MenuService = Depends(),
 ) -> MainMenu | dict:
     """
     Возвращает меню.
     :param m_id: id меню.
-    :param menus: репозиторий для работы с логикой.
-    :param session: сессия с бд.
+    :param menus: сервис для работы с логикой.
     """
-    return await menus.get_by_id(session=session, m_id=m_id)
+    return await menus.get_by_id(m_id=m_id)
 
 
 @router.post(
@@ -57,16 +50,14 @@ async def read_menu(
 )
 async def create_menu(
     m: MenuIn,
-    menus: MenuRepository = Depends(get_menus_repository),
-    session: AsyncSession = Depends(get_session),
+    menus: MenuService = Depends(),
 ) -> MainMenu:
     """
     Создает новое меню.
     :param m: поля с информацией о меню.
-    :param menus: репозиторий для работы с логикой.
-    :param session: сессия с бд.
+    :param menus: сервис для работы с логикой.
     """
-    return await menus.create(session=session, m=m)
+    return await menus.create(m=m)
 
 
 @router.patch(
@@ -78,17 +69,15 @@ async def create_menu(
 async def update_menu(
     m_id: str,
     m: MenuUpdate,
-    menus: MenuRepository = Depends(get_menus_repository),
-    session: AsyncSession = Depends(get_session),
+    menus: MenuService = Depends(),
 ) -> MainMenu | dict:
     """
     Обновляет меню.
     :param m_id: id меню
     :param m: поля с информацией о меню для обновления.
-    :param menus: репозиторий для работы с логикой.
-    :param session: сессия с бд.
+    :param menus: сервис для работы с логикой.
     """
-    return await menus.patch(session=session, m_id=m_id, m=m)
+    return await menus.patch(m_id=m_id, m=m)
 
 
 @router.delete(
@@ -98,13 +87,11 @@ async def update_menu(
 )
 async def delete_menu(
     m_id: str,
-    menus: MenuRepository = Depends(get_menus_repository),
-    session: AsyncSession = Depends(get_session),
+    menus: MenuService = Depends(),
 ) -> dict:
     """
     Удаляет меню.
     :param m_id: id меню.
-    :param menus: репозиторий для работы с логикой.
-    :param session: сессия с бд.
+    :param menus: сервис для работы с логикой.
     """
-    return await menus.delete(session=session, m_id=m_id)
+    return await menus.delete(m_id=m_id)

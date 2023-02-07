@@ -3,7 +3,9 @@ import json
 from .redis_connection import redis
 
 
-async def create_new_cache(dictionary: dict, name: str | None = None) -> None:
+async def create_new_cache(dictionary: dict | None, name: str | None = None) -> None:
+    if not dictionary:
+        return
     if not name:
         name = str(dictionary["id"])
     dictionary["id"] = str(dictionary["id"])

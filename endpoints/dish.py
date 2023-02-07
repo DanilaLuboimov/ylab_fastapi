@@ -1,12 +1,9 @@
 import http
 
 from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from models.dish import DishIn, MainDish
-from repositories.dish import DishRepository
-
-from .depends import get_dishes_repository, get_session
+from models.dish import DishIn, DishUpdate, MainDish
+from services.dish import DishService
 
 router = APIRouter()
 
@@ -20,17 +17,15 @@ router = APIRouter()
 async def read_dishes(
     m_id: str,
     sm_id: str,
-    dishes: DishRepository = Depends(get_dishes_repository),
-    session: AsyncSession = Depends(get_session),
+    dishes: DishService = Depends(),
 ) -> list[MainDish]:
     """
     Возвращает список всех блюд, принадлежащих подменю.
     :param m_id: id меню, связанного с блюдом и подменю.
     :param sm_id: id подменю, связанного с блюдом.
-    :param dishes: репозиторий для работы с логикой.
-    :param session: сессия с бд.
+    :param dishes: сервис для работы с логикой.
     """
-    return await dishes.get_all(session=session, sm_id=sm_id)
+    return await dishes.get_all(sm_id=sm_id)
 
 
 @router.get(
@@ -43,18 +38,16 @@ async def read_dish(
     m_id: str,
     sm_id: str,
     d_id: str,
-    dishes: DishRepository = Depends(get_dishes_repository),
-    session: AsyncSession = Depends(get_session),
+    dishes: DishService = Depends(),
 ) -> MainDish | dict:
     """
     Возвращает  блюдо, принадлежащего подменю.
     :param m_id: id меню, связанного с блюдом и подменю.
     :param sm_id: id подменю, связанного с блюдом.
     :param d_id: id блюда.
-    :param dishes: репозиторий для работы с логикой.
-    :param session: сессия с бд.
+    :param dishes: сервис для работы с логикой.
     """
-    return await dishes.get_by_id(session=session, d_id=d_id)
+    return await dishes.get_by_id(d_id=d_id)
 
 
 @router.post(
@@ -67,19 +60,16 @@ async def create_dish(
     m_id: str,
     sm_id: str,
     d: DishIn,
-    dishes: DishRepository = Depends(get_dishes_repository),
-    session: AsyncSession = Depends(get_session),
+    dishes: DishService = Depends(),
 ) -> MainDish:
     """
     Создает новое блюдо, принадлежащее подменю и возвращает его.
     :param m_id: id меню, связанного с блюдом и подменю.
     :param sm_id: id подменю, связанного с блюдом.
     :param d: поля с информацией о блюде.
-    :param dishes: репозиторий для работы с логикой.
-    :param session: сессия с бд.
+    :param dishes: сервис для работы с логикой.
     """
     return await dishes.create(
-        session=session,
         m_id=m_id,
         sm_id=sm_id,
         d=d,
@@ -96,9 +86,8 @@ async def update_dish(
     m_id: str,
     sm_id: str,
     d_id: str,
-    d: DishIn,
-    dish: DishRepository = Depends(get_dishes_repository),
-    session: AsyncSession = Depends(get_session),
+    d: DishUpdate,
+    dish: DishService = Depends(),
 ) -> MainDish | dict:
     """
     Обновляет  блюдо, принадлежащее подменю и возвращает его.
@@ -106,11 +95,9 @@ async def update_dish(
     :param sm_id: id подменю, связанного с блюдом.
     :param d_id: id блюда.
     :param d: поля с информацией о блюде для обновления.
-    :param dish: репозиторий для работы с логикой.
-    :param session: сессия с бд.
+    :param dish: сервис для работы с логикой.
     """
     return await dish.patch(
-        session=session,
         m_id=m_id,
         sm_id=sm_id,
         d_id=d_id,
@@ -127,19 +114,16 @@ async def delete_dish(
     m_id: str,
     sm_id: str,
     d_id: str,
-    dishes: DishRepository = Depends(get_dishes_repository),
-    session: AsyncSession = Depends(get_session),
+    dishes: DishService = Depends(),
 ) -> dict:
     """
     Удаляет блюдо.
     :param m_id: id меню, связанного с блюдом и подменю.
     :param sm_id: id подменю, связанного с блюдом.
     :param d_id: id блюда.
-    :param dishes: репозиторий для работы с логикой.
-    :param session: сессия с бд.
+    :param dishes: сервис для работы с логикой.
     """
     return await dishes.delete(
-        session=session,
         m_id=m_id,
         sm_id=sm_id,
         d_id=d_id,

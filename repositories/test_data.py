@@ -1,12 +1,10 @@
 import json
 
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from db.tables import Dish, Menu, Submenu
 
 
 class TestDataRepository:
-    async def create(self, session: AsyncSession):
+    async def create(self, session):
         with open("test_data.json", encoding="utf-8") as file:
             content = file.read()
 
@@ -14,7 +12,10 @@ class TestDataRepository:
 
         for menu in data:
             await self.create_record(
-                session, menu["title"], menu["description"], m_id=menu["id"]
+                session,
+                menu["title"],
+                menu["description"],
+                m_id=menu["id"],
             )
             for submenu in menu["submenus"]:
                 await self.create_record(
@@ -38,7 +39,7 @@ class TestDataRepository:
 
     @staticmethod
     async def create_record(
-        session: AsyncSession,
+        session,
         title: str,
         description: str,
         price: str | None = None,
