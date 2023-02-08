@@ -21,7 +21,7 @@ PROD = os.getenv("PROD")
 TESTING = os.getenv("TESTING")
 
 if TESTING:
-    DB_NAME = "test_ylab_menu"
+    DB_NAME = "ylab_menu"
     DATABASE_URL = f"postgresql+asyncpg://{DB_USER}:{DB_PASSWORD}@{TESTING}/{DB_NAME}"
     REDIS_URL = "redis://redis"
     RABBITMQ_URL = "pyamqp://rmuser:rmpassword@rabbit/rabbit_prod"
