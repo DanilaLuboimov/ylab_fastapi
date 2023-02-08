@@ -13,6 +13,7 @@ services:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root
       POSTGRES_DB: ylab_menu
+      PGDATA: .:/pgdata
       POSTGRES_INITDB_ARGS: "-A md5"
     networks:
       - ylab_network
