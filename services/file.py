@@ -25,7 +25,7 @@ class FileServices:
             }
 
         if PROD:
-            path = rf"../\media/{task_id}.xlsx"
+            path = rf"/srv/media/{task_id}.xlsx"
         else:
             path = f"./files/{task_id}.xlsx"
 

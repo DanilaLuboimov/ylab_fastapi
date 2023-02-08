@@ -18,7 +18,7 @@ def create_menu_excel():
     task_id = worker.current_task.request.id
 
     if PROD:
-        workbook = xlsxwriter.Workbook(rf"../\media/{task_id}.xlsx")
+        workbook = xlsxwriter.Workbook(rf"/srv/media/{task_id}.xlsx")
     else:
         workbook = xlsxwriter.Workbook(f"./files/{task_id}.xlsx")
 

@@ -44,7 +44,7 @@ services:
     networks:
       - ylab_network
     volumes:
-      - .\files:\media
+      - "./files:/srv/media"
   redis:
     container_name: dev_redis
     image: redis:latest
@@ -92,7 +92,7 @@ services:
       links:
         - app
       volumes:
-        - .\files:\media
+        - "./files:/srv/media"
 networks:
   ylab_network:
     driver: bridge
