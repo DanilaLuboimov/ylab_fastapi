@@ -1,14 +1,5 @@
 import os
-from pathlib import Path
 
-from dotenv import find_dotenv, load_dotenv
-
-if not find_dotenv():
-    exit("Переменные окружения не загружены т.к отсутствует файл .env")
-else:
-    load_dotenv()
-
-BASE_DIR = Path(__file__).resolve().parent.parent
 
 CACHE_HOST = os.getenv("CACHE_HOST", "localhost")
 CACHE_PORT = os.getenv("CACHE_PORT", "9000")

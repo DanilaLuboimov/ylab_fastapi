@@ -16,7 +16,9 @@ async def create_new_cache(dictionary: dict | None, name: str | None = None) -> 
 async def get_cache_response(name: str) -> dict | None:
     data = await redis.get(name)
     if data:
+        print("Данные из кэша")
         return json.loads(data)
+    print("НЕ из кэша данные")
     return None
 
 

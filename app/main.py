@@ -3,7 +3,8 @@ from fastapi import FastAPI
 
 from db.base import async_session, engine
 from db.tables import Base
-from endpoints import dish, files, menu, submenu, test_data
+from endpoints import submenu
+from endpoints import files, dish, menu, test_data
 
 app = FastAPI(title="Restaurant menu")
 app.include_router(menu.router, prefix="/api/v1/menus", tags=["menus"])

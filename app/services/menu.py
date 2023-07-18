@@ -2,7 +2,8 @@ from fastapi import Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
-from cache_redis.events import create_new_cache, delete_cache, get_cache_response
+from cache_redis.events import create_new_cache, delete_cache, \
+    get_cache_response
 from models.menu import MainMenu, MenuIn, MenuUpdate
 from repositories.menu import MenuRepository
 
@@ -84,7 +85,7 @@ class MenuService:
         if not menus:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="submenu not found",
+                detail="menu not found",
             )
 
         await create_new_cache(dictionary=cache_dict, name=m_id)
@@ -96,7 +97,9 @@ class MenuService:
         if cache:
             await delete_cache(m_id)
 
-        check = await self.menu_rep.check_by_id(session=self.session, m_id=m_id)
+        check = await self.menu_rep.check_by_id(
+            session=self.session, m_id=m_id
+        )
 
         if check is None:
             raise HTTPException(

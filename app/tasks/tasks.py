@@ -20,7 +20,7 @@ def create_menu_excel():
     if PROD:
         workbook = xlsxwriter.Workbook(rf"/srv/media/{task_id}.xlsx")
     else:
-        workbook = xlsxwriter.Workbook(f"./files/{task_id}.xlsx")
+        workbook = xlsxwriter.Workbook(f"../files/{task_id}.xlsx")
 
     text_wrap = workbook.add_format({"text_wrap": True})
 

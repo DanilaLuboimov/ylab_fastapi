@@ -1,11 +1,20 @@
+from typing import Optional
 from uuid import uuid4
 
-from pydantic import UUID4, BaseModel, Field, root_validator
+from pydantic import UUID4, BaseModel, Field, root_validator, validator
 
 
 class BaseDish(BaseModel):
+    price: str
+
     class Config:
         validator_assigment = True
+
+    @validator("price")
+    def check_price(cls, price):
+        if float(price) <= 0:
+            raise ValueError("Цена за блюдо должна быть больше 0")
+        return price
 
     @root_validator
     def set_correct_price(cls, values):
